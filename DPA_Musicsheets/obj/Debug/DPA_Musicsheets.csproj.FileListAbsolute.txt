@@ -193,3 +193,12 @@ C:\Users\mmaaschu\Documents\GitHub\DPA_Startup_Musicsheets\DPA_Musicsheets\bin\D
 C:\Users\mmaaschu\Documents\GitHub\DPA_Startup_Musicsheets\DPA_Musicsheets\bin\Debug\Files\Twee-emmertjes-water-halen.ly
 C:\Users\mmaaschu\Documents\GitHub\DPA_Startup_Musicsheets\DPA_Musicsheets\bin\Debug\Files\Twee-emmertjes-water-halen.mid
 C:\Users\mmaaschu\Documents\GitHub\DPA_Startup_Musicsheets\DPA_Musicsheets\bin\Debug\Files\Twee-emmertjes-water-halen_ZonderHerhalingMaatwisseling.ly
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.csprojResolveAssemblyReference.cache
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\Views\LilypondViewerCtrl.baml
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\Views\MidiPlayerCtrl.g.cs
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\Views\LilypondViewerCtrl.g.cs
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\Views\MainWindow.g.cs
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\Views\App.g.cs
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets_MarkupCompile.cache
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets_MarkupCompile.lref
