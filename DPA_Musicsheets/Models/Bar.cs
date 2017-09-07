@@ -8,7 +8,7 @@ namespace DPA_Musicsheets.Models
 {
     class Bar
     {
-        public List<Note> _musicNotes { get; set; }
+        public List<MusicNote> MusicNotes { get; set; }
         public Tuple<int, int> Rhythm { get; set; }
     }
 }

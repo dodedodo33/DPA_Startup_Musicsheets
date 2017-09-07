@@ -67,13 +67,11 @@
       <HintPath>..\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PSAMControlLibrary, Version=2.1.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\PSAMControlLibrary.dll</HintPath>
+    <Reference Include="PSAMControlLibrary">
+      <HintPath>..\..\DPA_Startup_Musicsheets\packages\PSAMControlLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="PSAMWPFControlLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\PSAMWPFControlLibrary.dll</HintPath>
+    <Reference Include="PSAMWPFControlLibrary">
+      <HintPath>..\..\DPA_Startup_Musicsheets\packages\PSAMWPFControlLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Sanford.Multimedia.Midi, Version=6.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Sanford.Multimedia.Midi.6.4.1\lib\net20\Sanford.Multimedia.Midi.dll</HintPath>
@@ -104,17 +102,22 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Factories\BarFactory.cs" />
+    <Compile Include="Factories\FileFactory.cs" />
     <Compile Include="Factories\NoteFactory.cs" />
     <Compile Include="Factories\PartFactory.cs" />
+    <Compile Include="Managers\FileSaver.cs" />
     <Compile Include="Managers\MidiSequenceEventArgs.cs" />
     <Compile Include="Managers\WPFStaffsEventArgs.cs" />
     <Compile Include="Managers\LilypondEventArgs.cs" />
     <Compile Include="Messages\CurrentStateMessage.cs" />
     <Compile Include="Managers\FileHandler.cs" />
+    <Compile Include="Interfaces\IFile.cs" />
+    <Compile Include="Models\LilypondFile.cs" />
     <Compile Include="Models\LilypondToken.cs" />
     <Compile Include="Models\LilypondTokenKind.cs" />
     <Compile Include="Models\Bar.cs" />
-    <Compile Include="Models\Note.cs" />
+    <Compile Include="Models\MidiFile.cs" />
+    <Compile Include="Models\MusicNote.cs" />
     <Compile Include="Models\Repetition.cs" />
     <Compile Include="Models\Song.cs" />
     <Compile Include="ViewModels\MidiPlayerViewModel.cs" />

@@ -1,5 +1,4 @@
-﻿
-using DPA_Musicsheets.Models;
+﻿using DPA_Musicsheets.Models;
 using PSAMControlLibrary;
 using PSAMWPFControlLibrary;
 using Sanford.Multimedia.Midi;
@@ -11,41 +10,47 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DPA_Musicsheets.Factories;
 
 namespace DPA_Musicsheets.Managers
 {
     public class FileHandler
     {
         private string _lilypondText;
+
         public string LilypondText
         {
-            get { return _lilypondText; }
+            get => _lilypondText;
             set
             {
                 _lilypondText = value;
-                LilypondTextChanged?.Invoke(this, new LilypondEventArgs() { LilypondText = value });
+                LilypondTextChanged?.Invoke(this, new LilypondEventArgs() {LilypondText = value});
             }
         }
-        public List<MusicalSymbol> WPFStaffs { get; set; } = new List<MusicalSymbol>();
-        private static List<Char> notesorder = new List<Char> { 'c', 'd', 'e', 'f', 'g', 'a', 'b' };
+
+        public FileFactory FileFactory { get; set; } = new FileFactory();
+        public List<MusicalSymbol> WpfStaffs { get; set; } = new List<MusicalSymbol>();
+        private static readonly List<char> Notesorder = new List<char> {'c', 'd', 'e', 'f', 'g', 'a', 'b'};
 
         public Sequence MidiSequence { get; set; }
 
         public event EventHandler<LilypondEventArgs> LilypondTextChanged;
-        public event EventHandler<WPFStaffsEventArgs> WPFStaffsChanged;
+        public event EventHandler<WPFStaffsEventArgs> WpfStaffsChanged;
         public event EventHandler<MidiSequenceEventArgs> MidiSequenceChanged;
 
-        private int _beatNote;        // De waarde van een beatnote.
-        private int _bpm;             // Aantal beatnotes per minute.
-        private int _beatsPerBar;     // Aantal beatnotes per maat.
+        private int _beatNote; // De waarde van een beatnote.
+        private int _bpm; // Aantal beatnotes per minute.
+        private int _beatsPerBar; // Aantal beatnotes per maat.
 
         public void OpenFile(string fileName)
         {
+            var ff = FileFactory.OpenFile(fileName);
+
             if (Path.GetExtension(fileName).EndsWith(".mid"))
             {
                 MidiSequence = new Sequence();
                 MidiSequence.Load(fileName);
-                MidiSequenceChanged?.Invoke(this, new MidiSequenceEventArgs() { MidiSequence = MidiSequence });
+                MidiSequenceChanged?.Invoke(this, new MidiSequenceEventArgs() {MidiSequence = MidiSequence});
                 LoadMidi(MidiSequence);
             }
             else if (Path.GetExtension(fileName).EndsWith(".ly"))
@@ -55,7 +60,7 @@ namespace DPA_Musicsheets.Managers
                 {
                     sb.AppendLine(line);
                 }
-                
+
                 LilypondText = sb.ToString();
 
                 LoadLilypond(sb.ToString());
@@ -71,13 +76,12 @@ namespace DPA_Musicsheets.Managers
             LilypondText = content;
             content = content.Trim().ToLower().Replace("\r\n", " ").Replace("\n", " ").Replace("  ", " ");
             LinkedList<LilypondToken> tokens = GetTokensFromLilypond(content);
-            WPFStaffs.Clear();
-            string message;
-            WPFStaffs.AddRange(GetStaffsFromTokens(tokens, out message));
-            WPFStaffsChanged?.Invoke(this, new WPFStaffsEventArgs() { Symbols = WPFStaffs, Message = message });
+            WpfStaffs.Clear();
+            WpfStaffs.AddRange(GetStaffsFromTokens(tokens, out var message));
+            WpfStaffsChanged?.Invoke(this, new WPFStaffsEventArgs() {Symbols = WpfStaffs, Message = message});
 
             MidiSequence = GetSequenceFromWPFStaffs();
-            MidiSequenceChanged?.Invoke(this, new MidiSequenceEventArgs() { MidiSequence = MidiSequence });
+            MidiSequenceChanged?.Invoke(this, new MidiSequenceEventArgs() {MidiSequence = MidiSequence});
         }
 
         public void LoadMidi(Sequence sequence)
@@ -108,12 +112,13 @@ namespace DPA_Musicsheets.Managers
                                 case MetaType.TimeSignature:
                                     byte[] timeSignatureBytes = metaMessage.GetBytes();
                                     _beatNote = timeSignatureBytes[0];
-                                    _beatsPerBar = (int)(1 / Math.Pow(timeSignatureBytes[1], -2));
+                                    _beatsPerBar = (int) (1 / Math.Pow(timeSignatureBytes[1], -2));
                                     lilypondContent.AppendLine($"\\time {_beatNote}/{_beatsPerBar}");
                                     break;
                                 case MetaType.Tempo:
                                     byte[] tempoBytes = metaMessage.GetBytes();
-                                    int tempo = (tempoBytes[0] & 0xff) << 16 | (tempoBytes[1] & 0xff) << 8 | (tempoBytes[2] & 0xff);
+                                    int tempo = (tempoBytes[0] & 0xff) << 16 | (tempoBytes[1] & 0xff) << 8 |
+                                                (tempoBytes[2] & 0xff);
                                     _bpm = 60000000 / tempo;
                                     lilypondContent.AppendLine($"\\tempo 4={_bpm}");
                                     break;
@@ -121,8 +126,9 @@ namespace DPA_Musicsheets.Managers
                                     if (previousNoteAbsoluteTicks > 0)
                                     {
                                         // Finish the last notelength.
-                                        double percentageOfBar;
-                                        lilypondContent.Append(GetNoteLength(previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, _beatNote, _beatsPerBar, out percentageOfBar));
+                                        lilypondContent.Append(GetNoteLength(previousNoteAbsoluteTicks,
+                                            midiEvent.AbsoluteTicks, division, _beatNote, _beatsPerBar,
+                                            out var percentageOfBar));
                                         lilypondContent.Append(" ");
 
                                         percentageOfBarReached += percentageOfBar;
@@ -133,26 +139,26 @@ namespace DPA_Musicsheets.Managers
                                         }
                                     }
                                     break;
-                                default: break;
                             }
                             break;
                         case MessageType.Channel:
                             var channelMessage = midiEvent.MidiMessage as ChannelMessage;
                             if (channelMessage.Command == ChannelCommand.NoteOn)
                             {
-                                if(channelMessage.Data2 > 0) // Data2 = loudness
+                                if (channelMessage.Data2 > 0) // Data2 = loudness
                                 {
                                     // Append the new note.
                                     lilypondContent.Append(GetNoteName(previousMidiKey, channelMessage.Data1));
-                                    
+
                                     previousMidiKey = channelMessage.Data1;
                                     startedNoteIsClosed = false;
                                 }
                                 else if (!startedNoteIsClosed)
                                 {
                                     // Finish the previous note with the length.
-                                    double percentageOfBar;
-                                    lilypondContent.Append(GetNoteLength(previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, _beatNote, _beatsPerBar, out percentageOfBar));
+                                    lilypondContent.Append(GetNoteLength(previousNoteAbsoluteTicks,
+                                        midiEvent.AbsoluteTicks, division, _beatNote, _beatsPerBar,
+                                        out var percentageOfBar));
                                     previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
                                     lilypondContent.Append(" ");
 
@@ -179,25 +185,26 @@ namespace DPA_Musicsheets.Managers
             LoadLilypond(lilypondContent.ToString());
         }
 
-        private string GetNoteLength(int absoluteTicks, int nextNoteAbsoluteTicks, int division, int beatNote, int beatsPerBar, out double percentageOfBar)
+        private string GetNoteLength(int absoluteTicks, int nextNoteAbsoluteTicks, int division, int beatNote,
+            int beatsPerBar, out double percentageOfBar)
         {
-            int duration = 0;
-            int dots = 0;
+            var duration = 0;
+            var dots = 0;
 
             double deltaTicks = nextNoteAbsoluteTicks - absoluteTicks;
 
             if (deltaTicks <= 0)
             {
                 percentageOfBar = 0;
-                return String.Empty;
+                return string.Empty;
             }
 
-            double percentageOfBeatNote = deltaTicks / division;
+            var percentageOfBeatNote = deltaTicks / division;
             percentageOfBar = (1.0 / beatsPerBar) * percentageOfBeatNote;
 
             for (int noteLength = 32; noteLength >= 1; noteLength -= 1)
             {
-                double absoluteNoteLength = (1.0 / noteLength);
+                var absoluteNoteLength = (1.0 / noteLength);
 
                 if (percentageOfBar <= absoluteNoteLength)
                 {
@@ -246,13 +253,13 @@ namespace DPA_Musicsheets.Managers
                 }
             }
 
-            return duration + new String('.', dots);
+            return duration + new string('.', dots);
         }
 
         private static string GetNoteName(int previousMidiKey, int midiKey)
         {
-            int octave = (midiKey / 12) - 1;
-            string name = "";
+            var octave = (midiKey / 12) - 1;
+            var name = "";
             switch (midiKey % 12)
             {
                 case 0:
@@ -293,14 +300,14 @@ namespace DPA_Musicsheets.Managers
                     break;
             }
 
-            int distance = midiKey - previousMidiKey;
-            while(distance < -6)
+            var distance = midiKey - previousMidiKey;
+            while (distance < -6)
             {
                 name += ",";
                 distance += 8;
             }
 
-            while(distance > 6)
+            while (distance > 6)
             {
                 name += "'";
                 distance -= 8;
@@ -310,7 +317,9 @@ namespace DPA_Musicsheets.Managers
         }
 
         #region Staffs loading
-        private static IEnumerable<MusicalSymbol> GetStaffsFromTokens(LinkedList<LilypondToken> tokens, out string message)
+
+        private static IEnumerable<MusicalSymbol> GetStaffsFromTokens(LinkedList<LilypondToken> tokens,
+            out string message)
         {
             List<MusicalSymbol> symbols = new List<MusicalSymbol>();
             message = "";
@@ -336,7 +345,8 @@ namespace DPA_Musicsheets.Managers
                             alter += Regex.Matches(currentToken.Value, "is").Count;
                             alter -= Regex.Matches(currentToken.Value, "es|as").Count;
                             // Octaves
-                            int distanceWithPreviousNote = notesorder.IndexOf(currentToken.Value[0]) - notesorder.IndexOf(previousNote);
+                            int distanceWithPreviousNote =
+                                Notesorder.IndexOf(currentToken.Value[0]) - Notesorder.IndexOf(previousNote);
                             if (distanceWithPreviousNote > 3) // Shorter path possible the other way around
                             {
                                 distanceWithPreviousNote -= 7; // The number of notes in an octave
@@ -346,11 +356,11 @@ namespace DPA_Musicsheets.Managers
                                 distanceWithPreviousNote += 7; // The number of notes in an octave
                             }
 
-                            if (distanceWithPreviousNote + notesorder.IndexOf(previousNote) >= 7)
+                            if (distanceWithPreviousNote + Notesorder.IndexOf(previousNote) >= 7)
                             {
                                 previousOctave++;
                             }
-                            else if (distanceWithPreviousNote + notesorder.IndexOf(previousNote) < 0)
+                            else if (distanceWithPreviousNote + Notesorder.IndexOf(previousNote) < 0)
                             {
                                 previousOctave--;
                             }
@@ -361,14 +371,16 @@ namespace DPA_Musicsheets.Managers
 
                             previousNote = currentToken.Value[0];
 
-                            var note = new Note(currentToken.Value[0].ToString().ToUpper(), alter, previousOctave, (MusicalSymbolDuration)noteLength, NoteStemDirection.Up, NoteTieType.None, new List<NoteBeamType>() { NoteBeamType.Single });
+                            var note = new Note(currentToken.Value[0].ToString().ToUpper(), alter, previousOctave,
+                                (MusicalSymbolDuration) noteLength, NoteStemDirection.Up, NoteTieType.None,
+                                new List<NoteBeamType>() {NoteBeamType.Single});
                             note.NumberOfDots += currentToken.Value.Count(c => c.Equals('.'));
 
                             symbols.Add(note);
                             break;
                         case LilypondTokenKind.Rest:
                             var restLength = Int32.Parse(currentToken.Value[1].ToString());
-                            symbols.Add(new Rest((MusicalSymbolDuration)restLength));
+                            symbols.Add(new Rest((MusicalSymbolDuration) restLength));
                             break;
                         case LilypondTokenKind.Bar:
                             symbols.Add(new Barline());
@@ -387,7 +399,8 @@ namespace DPA_Musicsheets.Managers
                         case LilypondTokenKind.Time:
                             currentToken = currentToken.NextToken;
                             var times = currentToken.Value.Split('/');
-                            symbols.Add(new TimeSignature(TimeSignatureType.Numbers, UInt32.Parse(times[0]), UInt32.Parse(times[1])));
+                            symbols.Add(new TimeSignature(TimeSignatureType.Numbers, UInt32.Parse(times[0]),
+                                UInt32.Parse(times[1])));
                             break;
                         case LilypondTokenKind.Tempo:
                             // Tempo not supported
@@ -398,14 +411,14 @@ namespace DPA_Musicsheets.Managers
                     currentToken = currentToken.NextToken;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 message = ex.Message;
             }
 
             return symbols;
         }
-        
+
         private static LinkedList<LilypondToken> GetTokensFromLilypond(string content)
         {
             var tokens = new LinkedList<LilypondToken>();
@@ -419,12 +432,24 @@ namespace DPA_Musicsheets.Managers
 
                 switch (s)
                 {
-                    case "\\relative": token.TokenKind = LilypondTokenKind.Staff; break;
-                    case "\\clef": token.TokenKind = LilypondTokenKind.Clef; break;
-                    case "\\time": token.TokenKind = LilypondTokenKind.Time; break;
-                    case "\\tempo": token.TokenKind = LilypondTokenKind.Tempo; break;
-                    case "|": token.TokenKind = LilypondTokenKind.Bar; break;
-                    default: token.TokenKind = LilypondTokenKind.Unknown; break;
+                    case "\\relative":
+                        token.TokenKind = LilypondTokenKind.Staff;
+                        break;
+                    case "\\clef":
+                        token.TokenKind = LilypondTokenKind.Clef;
+                        break;
+                    case "\\time":
+                        token.TokenKind = LilypondTokenKind.Time;
+                        break;
+                    case "\\tempo":
+                        token.TokenKind = LilypondTokenKind.Tempo;
+                        break;
+                    case "|":
+                        token.TokenKind = LilypondTokenKind.Bar;
+                        break;
+                    default:
+                        token.TokenKind = LilypondTokenKind.Unknown;
+                        break;
                 }
 
                 token.Value = s;
@@ -449,9 +474,11 @@ namespace DPA_Musicsheets.Managers
 
             return tokens;
         }
+
         #endregion Staffs loading
 
         #region Saving to files
+
         internal void SaveToMidi(string fileName)
         {
             Sequence sequence = GetSequenceFromWPFStaffs();
@@ -461,7 +488,8 @@ namespace DPA_Musicsheets.Managers
 
         private Sequence GetSequenceFromWPFStaffs()
         {
-            List<string> notesOrderWithCrosses = new List<string>() { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
+            List<string> notesOrderWithCrosses =
+                new List<string>() {"c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b"};
             int absoluteTicks = 0;
 
             Sequence sequence = new Sequence();
@@ -472,15 +500,15 @@ namespace DPA_Musicsheets.Managers
             // Calculate tempo
             int speed = (60000000 / _bpm);
             byte[] tempo = new byte[3];
-            tempo[0] = (byte)((speed >> 16) & 0xff);
-            tempo[1] = (byte)((speed >> 8) & 0xff);
-            tempo[2] = (byte)(speed & 0xff);
+            tempo[0] = (byte) ((speed >> 16) & 0xff);
+            tempo[1] = (byte) ((speed >> 8) & 0xff);
+            tempo[2] = (byte) (speed & 0xff);
             metaTrack.Insert(0 /* Insert at 0 ticks*/, new MetaMessage(MetaType.Tempo, tempo));
 
             Track notesTrack = new Track();
             sequence.Add(notesTrack);
 
-            foreach (MusicalSymbol musicalSymbol in WPFStaffs)
+            foreach (MusicalSymbol musicalSymbol in WpfStaffs)
             {
                 switch (musicalSymbol.Type)
                 {
@@ -488,7 +516,7 @@ namespace DPA_Musicsheets.Managers
                         Note note = musicalSymbol as Note;
 
                         // Calculate duration
-                        double absoluteLength = 1.0 / (double)note.Duration;
+                        double absoluteLength = 1.0 / (double) note.Duration;
                         absoluteLength += (absoluteLength / 2.0) * note.NumberOfDots;
 
                         double relationToQuartNote = _beatNote / 4;
@@ -498,16 +526,18 @@ namespace DPA_Musicsheets.Managers
                         // Calculate height
                         int noteHeight = notesOrderWithCrosses.IndexOf(note.Step.ToLower()) + ((note.Octave + 1) * 12);
                         noteHeight += note.Alter;
-                        notesTrack.Insert(absoluteTicks, new ChannelMessage(ChannelCommand.NoteOn, 1, noteHeight, 90)); // Data2 = volume
+                        notesTrack.Insert(absoluteTicks,
+                            new ChannelMessage(ChannelCommand.NoteOn, 1, noteHeight, 90)); // Data2 = volume
 
-                        absoluteTicks += (int)deltaTicks;
-                        notesTrack.Insert(absoluteTicks, new ChannelMessage(ChannelCommand.NoteOn, 1, noteHeight, 0)); // Data2 = volume
+                        absoluteTicks += (int) deltaTicks;
+                        notesTrack.Insert(absoluteTicks,
+                            new ChannelMessage(ChannelCommand.NoteOn, 1, noteHeight, 0)); // Data2 = volume
 
                         break;
                     case MusicalSymbolType.TimeSignature:
                         byte[] timeSignature = new byte[4];
-                        timeSignature[0] = (byte)_beatsPerBar;
-                        timeSignature[1] = (byte)(Math.Log(_beatNote) / Math.Log(2));
+                        timeSignature[0] = (byte) _beatsPerBar;
+                        timeSignature[1] = (byte) (Math.Log(_beatNote) / Math.Log(2));
                         metaTrack.Insert(absoluteTicks, new MetaMessage(MetaType.TimeSignature, timeSignature));
                         break;
                     default:
@@ -522,35 +552,34 @@ namespace DPA_Musicsheets.Managers
 
         internal void SaveToPDF(string fileName)
         {
-            string withoutExtension = Path.GetFileNameWithoutExtension(fileName);
-            string tmpFileName = $"{fileName}-tmp.ly";
+            var tmpFileName = $"{fileName}-tmp.ly";
             SaveToLilypond(tmpFileName);
 
-            string lilypondLocation = @"C:\Program Files (x86)\LilyPond\usr\bin\lilypond.exe";
-            string sourceFolder = Path.GetDirectoryName(tmpFileName);
-            string sourceFileName = Path.GetFileNameWithoutExtension(tmpFileName);
-            string targetFolder = Path.GetDirectoryName(fileName);
-            string targetFileName = Path.GetFileNameWithoutExtension(fileName);
+            const string lilypondLocation = @"C:\Program Files (x86)\LilyPond\usr\bin\lilypond.exe";
+            var sourceFolder = Path.GetDirectoryName(tmpFileName);
+            var sourceFileName = Path.GetFileNameWithoutExtension(tmpFileName);
+            var targetFolder = Path.GetDirectoryName(fileName);
+            var targetFileName = Path.GetFileNameWithoutExtension(fileName);
 
             var process = new Process
             {
                 StartInfo =
                 {
-                    WorkingDirectory = sourceFolder,
+                    WorkingDirectory = sourceFolder ?? throw new DirectoryNotFoundException(),
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Arguments = String.Format("--pdf \"{0}\\{1}.ly\"", sourceFolder, sourceFileName),
+                    Arguments = $"--pdf \"{sourceFolder}\\{sourceFileName}.ly\"",
                     FileName = lilypondLocation
                 }
             };
 
             process.Start();
-            while (!process.HasExited) { /* Wait for exit */
-                }
-                if (sourceFolder != targetFolder || sourceFileName != targetFileName)
+            while (!process.HasExited)
             {
-                File.Move(sourceFolder + "\\" + sourceFileName + ".pdf", targetFolder + "\\" + targetFileName + ".pdf");
-                File.Delete(tmpFileName);
+                /* Wait for exit */
             }
+            if (sourceFolder == targetFolder && sourceFileName == targetFileName) return;
+            File.Move(sourceFolder + "\\" + sourceFileName + ".pdf", targetFolder + "\\" + targetFileName + ".pdf");
+            File.Delete(tmpFileName);
         }
 
         internal void SaveToLilypond(string fileName)
@@ -561,6 +590,7 @@ namespace DPA_Musicsheets.Managers
                 outputFile.Close();
             }
         }
+
         #endregion Saving to files
     }
 }
