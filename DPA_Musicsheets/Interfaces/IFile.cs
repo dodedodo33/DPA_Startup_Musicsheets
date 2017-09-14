@@ -1,7 +1,9 @@
-﻿namespace DPA_Musicsheets.Interfaces
+﻿using DPA_Musicsheets.Models;
+
+namespace DPA_Musicsheets.Interfaces
 {
     public interface IFile
     {
-        void Load();
+        Song Load();
     }
 }
