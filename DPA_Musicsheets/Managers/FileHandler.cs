@@ -80,7 +80,7 @@ namespace DPA_Musicsheets.Managers
             WpfStaffs.AddRange(GetStaffsFromTokens(tokens, out var message));
             WpfStaffsChanged?.Invoke(this, new WPFStaffsEventArgs() {Symbols = WpfStaffs, Message = message});
 
-            MidiSequence = GetSequenceFromWPFStaffs();
+            MidiSequence = GetSequenceFromWpfStaffs();
             MidiSequenceChanged?.Invoke(this, new MidiSequenceEventArgs() {MidiSequence = MidiSequence});
         }
 
@@ -481,12 +481,12 @@ namespace DPA_Musicsheets.Managers
 
         internal void SaveToMidi(string fileName)
         {
-            Sequence sequence = GetSequenceFromWPFStaffs();
+            Sequence sequence = GetSequenceFromWpfStaffs();
 
             sequence.Save(fileName);
         }
 
-        private Sequence GetSequenceFromWPFStaffs()
+        private Sequence GetSequenceFromWpfStaffs()
         {
             List<string> notesOrderWithCrosses =
                 new List<string>() {"c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b"};
