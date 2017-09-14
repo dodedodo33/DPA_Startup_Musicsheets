@@ -37,16 +37,10 @@ namespace DPA_Musicsheets.Managers
         public event EventHandler<LilypondEventArgs> LilypondTextChanged;
         public event EventHandler<WPFStaffsEventArgs> WpfStaffsChanged;
         public event EventHandler<MidiSequenceEventArgs> MidiSequenceChanged;
-
-<<<<<<< HEAD
-        private int _beatNote; // De waarde van een beatnote.
-        private int _bpm; // Aantal beatnotes per minute.
-        private int _beatsPerBar; // Aantal beatnotes per maat.
-=======
+        
         private int _beatNote = 4;    // De waarde van een beatnote.
         private int _bpm = 120;       // Aantal beatnotes per minute.
         private int _beatsPerBar;     // Aantal beatnotes per maat.
->>>>>>> a885b529785a9860986238e409ba26dde1b64741
 
         public void OpenFile(string fileName)
         {
