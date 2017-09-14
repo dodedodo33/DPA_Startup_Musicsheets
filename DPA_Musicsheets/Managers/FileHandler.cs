@@ -38,9 +38,15 @@ namespace DPA_Musicsheets.Managers
         public event EventHandler<WPFStaffsEventArgs> WpfStaffsChanged;
         public event EventHandler<MidiSequenceEventArgs> MidiSequenceChanged;
 
+<<<<<<< HEAD
         private int _beatNote; // De waarde van een beatnote.
         private int _bpm; // Aantal beatnotes per minute.
         private int _beatsPerBar; // Aantal beatnotes per maat.
+=======
+        private int _beatNote = 4;    // De waarde van een beatnote.
+        private int _bpm = 120;       // Aantal beatnotes per minute.
+        private int _beatsPerBar;     // Aantal beatnotes per maat.
+>>>>>>> a885b529785a9860986238e409ba26dde1b64741
 
         public void OpenFile(string fileName)
         {
@@ -519,7 +525,7 @@ namespace DPA_Musicsheets.Managers
                         double absoluteLength = 1.0 / (double) note.Duration;
                         absoluteLength += (absoluteLength / 2.0) * note.NumberOfDots;
 
-                        double relationToQuartNote = _beatNote / 4;
+                        double relationToQuartNote = _beatNote / 4.0;
                         double percentageOfBeatNote = (1.0 / _beatNote) / absoluteLength;
                         double deltaTicks = (sequence.Division / relationToQuartNote) / percentageOfBeatNote;
 
