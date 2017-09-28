@@ -9,17 +9,9 @@ namespace DPA_Musicsheets.Factories
     {
         public IFile OpenFile(string s)
         {
-            try
-            {
-                IFile file = null;
-                if (Path.GetExtension(s).EndsWith(".mid")) file = new MidiFile();
-                if (Path.GetExtension(s).EndsWith(".ly")) file = new LilypondFile();
-                return file;
-            }
-            catch (Exception e)
-            {
-                throw new NotSupportedException($"File extension {e} is not supported.");
-            }
+            if (Path.GetExtension(s).EndsWith(".mid")) return new MidiFile();
+            if (Path.GetExtension(s).EndsWith(".ly")) return new LilypondFile();
+            return null;
         }
     }
 }

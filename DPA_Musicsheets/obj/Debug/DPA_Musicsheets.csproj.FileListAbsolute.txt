@@ -238,3 +238,4 @@ C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.P
 C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.csproj.GenerateResource.Cache
 C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.exe
 C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.pdb
+C:\Users\jjvij\git\DPA_Team_Prutsers\DPA_Musicsheets\obj\Debug\DPA_Musicsheets.csproj.CoreCompileInputs.cache
