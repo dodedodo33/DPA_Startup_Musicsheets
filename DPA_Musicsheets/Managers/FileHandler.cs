@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DPA_Musicsheets.Factories;
 
 namespace DPA_Musicsheets.Managers
 {
@@ -27,8 +26,7 @@ namespace DPA_Musicsheets.Managers
                 LilypondTextChanged?.Invoke(this, new LilypondEventArgs() {LilypondText = value});
             }
         }
-
-        public FileFactory FileFactory { get; set; } = new FileFactory();
+        
         public List<MusicalSymbol> WpfStaffs { get; set; } = new List<MusicalSymbol>();
         private static readonly List<char> Notesorder = new List<char> {'c', 'd', 'e', 'f', 'g', 'a', 'b'};
 
@@ -44,8 +42,6 @@ namespace DPA_Musicsheets.Managers
 
         public void OpenFile(string fileName)
         {
-            var ff = FileFactory.OpenFile(fileName);
-
             if (Path.GetExtension(fileName).EndsWith(".mid"))
             {
                 MidiSequence = new Sequence();
